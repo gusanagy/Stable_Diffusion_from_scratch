@@ -22,7 +22,7 @@ class TimeEmbedding(nn.Module):
 
         #(1, 1280)
         return x
-class UNER_ResidualBlock(nn.Module):
+class UNET_ResidualBlock(nn.Module):
     def __init__(self, in_channels: int, out_channels: int, n_time=1200):
         super().__init__()
         self.groupnorm_feature = nn.GroupNorm(32, in_channels)
@@ -146,7 +146,7 @@ class CrossAttention(nn.Module):
         input_shape = x.shape
         batch_size, sequence_lenght, d_embed = input_shape
 
-        interim_shape = (batch_size, -1, self.n_heads, self,d_head)
+        interim_shape = (batch_size, -1, self.n_heads, self.d_head)
 
         #Multiply query by Wq
         q = self.q_proj(x)
@@ -219,14 +219,14 @@ class UNET(nn.Module):
             SwitchSequential(nn.Conv2d(640,640, kernel_size=3, stride=2, padding=1)),
 
             SwitchSequential(UNET_ResidualBlock(640,1280), UNET_AttentionBlock(8, 160)),
-            SwitchSequential(UNET_residualBlock(1280,1280), UNET_AttentionBlock(8, 160)),
+            SwitchSequential(UNET_ResidualBlock(1280,1280), UNET_AttentionBlock(8, 160)),
 
             # (Batch_size, 1280, Height /32, Width /32) -> (Batch_size, 1280, Height /64, Width /64)              
             SwitchSequential(nn.Conv2d(1280,1280, kernel_size=3, stride=2, padding=1)),
 
             SwitchSequential(UNET_ResidualBlock(1280,1280)),
             # (Batch_size, 1280, Height /64, Width /64) -> (Batch_size, 1280, Height /64, Width /64)
-            SwitchSequential(UNET_residualBlock(1280,1280)),
+            SwitchSequential(UNET_ResidualBlock(1280,1280)),
         ])
         self.bottleneck = SwitchSequential(
             UNET_ResidualBlock(1280,1280),
@@ -251,7 +251,7 @@ class UNET(nn.Module):
 class UNET_OutputLayer(nn.Module):
     def __init__(self, in_channels: int, out_channels: int):
         self.groupnorm = nn.GroupNorm(32, in_channels)
-        self.conv = nn.Conv2d(in_channels, out_channels, kernel_size, padding=1)
+        self.conv = nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1)
 
     def forward(self, x):
         # x: (Batch_size, 320, Height /8 , Width /8)
