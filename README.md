@@ -12,3 +12,5 @@ The goal of this project is to follow along with the tutorial, understand the co
 * data/: Any data necessary for running the code will be stored here.
 * README.md: You are reading it right now!
 * requiriments.txt: Have a list of packeges with you need to install
+
+Please Dowload the pretreined diffusion weights in this link: https://huggingface.co/runwayml/stable-diffusion-v1-5/blob/main/v1-5-pruned-emaonly.ckpt and paste in data folder.
